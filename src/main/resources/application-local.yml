@@ -1,0 +1,19 @@
+spring:
+  docker:
+    compose:
+      file: docker-compose.local.yml
+      lifecycle-management: start-only
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:13306/sopkathon?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8}
+    username: ${DB_USERNAME:sopt}
+    password: ${DB_PASSWORD:sopt}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    show-sql: true
+  flyway:
+    clean-disabled: false
+
+logging:
+  level:
+    org.hibernate.SQL: debug
+    org.sopt.sopkathon: debug
