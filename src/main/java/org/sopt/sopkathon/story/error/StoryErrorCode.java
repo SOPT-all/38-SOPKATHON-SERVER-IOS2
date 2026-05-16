@@ -5,7 +5,7 @@ import org.sopt.sopkathon.global.error.ErrorLogLevel;
 import org.springframework.http.HttpStatus;
 
 public enum StoryErrorCode implements ErrorCode {
-    STORY_NOT_FOUND(HttpStatus.NOT_FOUND, "STORY_NOT_FOUND", "썰을 찾을 수 없습니다.", ErrorLogLevel.WARN);
+    STORY_NOT_FOUND(HttpStatus.NOT_FOUND, "STORY_NOT_FOUND", "스토리를 찾을 수 없습니다.", ErrorLogLevel.WARN);
 
     private final HttpStatus httpStatus;
     private final String code;
