@@ -1,0 +1,18 @@
+root = true
+
+# 모든 파일에 적용되는 기본 규칙입니다.
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+# YAML과 JSON은 보통 2칸 들여쓰기를 사용합니다.
+[*.{yml,yaml,json}]
+indent_size = 2
+
+# Markdown은 줄 끝 공백이 의미를 가질 수 있어 제거하지 않습니다.
+[*.md]
+trim_trailing_whitespace = false

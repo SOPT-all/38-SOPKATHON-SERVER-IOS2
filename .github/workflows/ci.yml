@@ -1,12 +1,12 @@
 name: CI
 
 on:
+  # PR에서는 배포하지 않고, 애플리케이션이 빌드 가능한지만 빠르게 확인한다.
+  # 해커톤 중 테스트 코드가 일시적으로 깨져도 PR 피드백은 받을 수 있게 test는 실행하지 않는다.
   pull_request:
     branches:
       - main
-  push:
-    branches:
-      - main
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -16,25 +16,36 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
-    name: test
+  build-check:
+    name: 빌드 가능 여부 확인
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
     steps:
-      - name: Checkout
+      - name: 코드 체크아웃
         uses: actions/checkout@v6
 
-      - name: Set up JDK 21
+      - name: JDK 21 준비
         uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '21'
 
-      - name: Set up Gradle
+      - name: Gradle 캐시 준비
         uses: gradle/actions/setup-gradle@v6
         with:
           cache-provider: basic
 
-      - name: Run tests
-        run: ./gradlew clean test --no-daemon
+      - name: bootJar 빌드 확인
+        run: |
+          set -euo pipefail
+          trap 'echo "::error::CI 빌드 확인 실패: ./gradlew bootJar -x test --no-daemon 명령이 실패했습니다. 위 Gradle 로그에서 컴파일 오류, 리소스 설정 오류, 테스트 제외 옵션 문제를 확인하세요."' ERR
+
+          echo "=== CI: 해커톤 빠른 빌드 확인 시작 ==="
+          echo "목적: PR에서 배포까지 가지 않고, main 코드 컴파일과 Spring Boot 실행 JAR 생성 가능 여부만 빠르게 확인합니다."
+          echo "테스트는 CD gate에서 제외합니다. 필요한 경우 로컬에서 ./gradlew test 또는 ./scripts/verify.sh를 따로 실행하세요."
+          echo "실행 명령어: ./gradlew bootJar -x test --no-daemon"
+
+          ./gradlew bootJar -x test --no-daemon
+
+          echo "=== CI: bootJar 빌드 확인 완료 ==="

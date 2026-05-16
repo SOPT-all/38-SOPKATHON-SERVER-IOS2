@@ -2,11 +2,9 @@ FROM eclipse-temurin:21-jre
 
 WORKDIR /app
 
-RUN addgroup --system spring && adduser --system --ingroup spring spring
-
 COPY build/libs/*.jar app.jar
 
-USER spring:spring
+USER 10001:10001
 
 EXPOSE 8080
 

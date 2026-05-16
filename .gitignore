@@ -1,5 +1,27 @@
-HELP.md
-.gradle
+### OS ###
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+Icon?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+### Logs and runtime dumps ###
+logs/
+*.log
+*.pid
+*.pid.lock
+hs_err_pid*
+replay_pid*
+*.hprof
+
+### Gradle ###
+.gradle/
 build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
@@ -18,7 +40,7 @@ bin/
 !**/src/test/**/bin/
 
 ### IntelliJ IDEA ###
-.idea
+.idea/
 *.iws
 *.iml
 *.ipr
@@ -36,7 +58,21 @@ out/
 ### VS Code ###
 .vscode/
 
-### Environment ###
+### Environment and secrets ###
 .env
 .env.*
 !.env.example
+!.env.prod.example
+*.pem
+*.key
+*.p8
+*.p12
+*.jks
+*.keystore
+
+### Local generated files ###
+/tmp/
+/temp/
+
+### Local-only docs ###
+/docs-local/

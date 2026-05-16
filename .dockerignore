@@ -1,9 +1,11 @@
 .gradle
-build
+build/*
+!build/libs/
+!build/libs/*.jar
 .git
 .idea
 *.iml
 .env
 .env.*
 !.env.example
-docs/superpowers
+docs-local/

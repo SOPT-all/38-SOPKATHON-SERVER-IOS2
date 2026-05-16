@@ -1,0 +1,304 @@
+name: Reset DB
+
+on:
+  # DB 초기화는 push로 자동 실행하지 않는다.
+  # GitHub Actions 화면에서 사람이 직접 실행할 때만 동작한다.
+  workflow_dispatch:
+    inputs:
+      confirmReset:
+        description: "DB 초기화를 실행하려면 RESET 을 입력하세요. 기존 RDS 데이터가 삭제됩니다."
+        required: true
+        default: ""
+        type: string
+      seedFiles:
+        description: "src/main/resources/db/seed 아래 seed 파일 이름. 예: local-test-account. 여러 개는 쉼표로 구분합니다."
+        required: false
+        default: "local-test-account"
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  # reset 작업은 동시에 두 개가 돌면 데이터 상태를 예측하기 어렵다.
+  # cancel-in-progress=false로 두어, 이미 실행 중인 reset이 있으면 새 실행은 대기한다.
+  group: reset-db-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  reset-db:
+    name: EC2 배포 DB 초기화
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v6
+
+      - name: 입력값과 필수 설정 확인
+        id: seed
+        env:
+          CONFIRM_RESET: ${{ inputs.confirmReset }}
+          SEED_FILES_INPUT: ${{ inputs.seedFiles }}
+          EC2_HOST: ${{ vars.EC2_HOST }}
+          EC2_USERNAME: ${{ vars.EC2_USERNAME }}
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          trap 'echo "::error::Reset DB 입력값 확인 실패: 위 로그의 누락 값 또는 seed 파일 이름 오류를 확인하세요."' ERR
+
+          echo "=== Reset DB: 입력값과 GitHub 설정 확인 시작 ==="
+          echo "이 workflow는 EC2에 이미 배포된 Docker image를 그대로 사용합니다."
+          echo "새 Entity나 새 seed 파일을 반영하려면 먼저 main push로 CD 배포를 완료한 뒤 실행하세요."
+
+          if [ "$CONFIRM_RESET" != "RESET" ]; then
+            echo "::error::DB 초기화를 실행하려면 confirmReset 입력값에 정확히 RESET 을 입력해야 합니다."
+            exit 1
+          fi
+
+          missing=()
+          [ -n "${EC2_HOST:-}" ] || missing+=("Variable:EC2_HOST")
+          [ -n "${EC2_USERNAME:-}" ] || missing+=("Variable:EC2_USERNAME")
+          [ -n "${EC2_SSH_KEY:-}" ] || missing+=("Secret:EC2_SSH_KEY")
+
+          if [ "${#missing[@]}" -gt 0 ]; then
+            echo "::error::Reset DB를 실행할 수 없습니다. EC2 접속 설정이 누락되었습니다."
+            for item in "${missing[@]}"; do
+              echo "::error::누락: ${item}"
+            done
+            echo "해결 방법: Repository -> Settings -> Secrets and variables -> Actions 에서 위 값을 채우세요."
+            exit 1
+          fi
+
+          input="${SEED_FILES_INPUT:-}"
+          seed_locations=()
+          seed_display=()
+
+          # 쉼표로 구분된 seed 파일 이름을 classpath 위치로 변환한다.
+          # 입력은 src/main/resources/db/seed 아래의 상대 경로만 허용한다.
+          # 예: local-test-account -> optional:classpath:db/seed/local-test-account.sql
+          IFS=',' read -ra raw_seed_files <<< "$input"
+          for raw_seed_file in "${raw_seed_files[@]}"; do
+            seed_file="$(printf '%s' "$raw_seed_file" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')"
+            [ -n "$seed_file" ] || continue
+
+            if [[ "$seed_file" == /* || "$seed_file" == *".."* ]]; then
+              echo "::error::허용되지 않는 seed 파일 이름입니다: ${seed_file}"
+              echo "seedFiles에는 src/main/resources/db/seed 아래의 상대 경로만 넣을 수 있습니다."
+              exit 1
+            fi
+
+            if [[ ! "$seed_file" =~ ^[A-Za-z0-9._/-]+$ ]]; then
+              echo "::error::seed 파일 이름에 허용되지 않는 문자가 있습니다: ${seed_file}"
+              echo "허용 문자: 영문, 숫자, 점(.), 밑줄(_), 하이픈(-), 슬래시(/)"
+              exit 1
+            fi
+
+            if [[ "$seed_file" != *.sql ]]; then
+              seed_file="${seed_file}.sql"
+            fi
+
+            repo_path="src/main/resources/db/seed/${seed_file}"
+            if [ ! -f "$repo_path" ]; then
+              echo "::error::저장소에서 seed 파일을 찾을 수 없습니다: ${repo_path}"
+              echo "새 seed 파일을 만들었다면 먼저 main에 push하고 CD 배포가 끝난 뒤 Reset DB를 실행하세요."
+              exit 1
+            fi
+
+            seed_locations+=("optional:classpath:db/seed/${seed_file}")
+            seed_display+=("${seed_file}")
+          done
+
+          if [ "${#seed_locations[@]}" -eq 0 ]; then
+            echo "seed_mode=never" >> "$GITHUB_OUTPUT"
+            echo "seed_locations=" >> "$GITHUB_OUTPUT"
+            echo "seed_display=시드 없음" >> "$GITHUB_OUTPUT"
+            echo "시드 파일 입력이 비어 있습니다. 스키마만 초기화하고 seed SQL은 실행하지 않습니다."
+          else
+            joined_locations="$(IFS=','; echo "${seed_locations[*]}")"
+            joined_display="$(IFS=','; echo "${seed_display[*]}")"
+            echo "seed_mode=always" >> "$GITHUB_OUTPUT"
+            echo "seed_locations=${joined_locations}" >> "$GITHUB_OUTPUT"
+            echo "seed_display=${joined_display}" >> "$GITHUB_OUTPUT"
+            echo "실행할 seed 파일: ${joined_display}"
+            echo "Spring SQL init 경로: ${joined_locations}"
+          fi
+
+          echo "=== Reset DB: 입력값과 GitHub 설정 확인 완료 ==="
+
+      - name: SSH 키 준비
+        env:
+          EC2_HOST: ${{ vars.EC2_HOST }}
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+          EC2_SSH_PORT: ${{ vars.EC2_SSH_PORT }}
+        run: |
+          set -euo pipefail
+          trap 'echo "::error::Reset DB SSH 준비 실패: EC2_HOST, EC2_SSH_KEY, EC2_SSH_PORT 값을 확인하세요."' ERR
+
+          echo "=== Reset DB: SSH 접속 준비 시작 ==="
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$EC2_SSH_KEY" > ~/.ssh/sopkathon-reset-key
+          chmod 600 ~/.ssh/sopkathon-reset-key
+
+          port="${EC2_SSH_PORT:-22}"
+          ssh-keyscan -p "$port" -H "$EC2_HOST" >> ~/.ssh/known_hosts
+          echo "EC2_SSH_PORT_RESOLVED=$port" >> "$GITHUB_ENV"
+          echo "=== Reset DB: SSH 접속 준비 완료 ==="
+
+      - name: EC2에서 DB 초기화 및 안전 설정 복구
+        env:
+          EC2_HOST: ${{ vars.EC2_HOST }}
+          EC2_USERNAME: ${{ vars.EC2_USERNAME }}
+          SEED_MODE: ${{ steps.seed.outputs.seed_mode }}
+          SEED_LOCATIONS: ${{ steps.seed.outputs.seed_locations }}
+          SEED_DISPLAY: ${{ steps.seed.outputs.seed_display }}
+        run: |
+          set -euo pipefail
+          trap 'echo "::error::Reset DB 실패: 아래 원격 로그에서 Docker Compose, health check, DB 연결 오류를 확인하세요."' ERR
+
+          echo "=== Reset DB: EC2 원격 초기화 시작 ==="
+          echo "대상 EC2: ${EC2_USERNAME}@${EC2_HOST}"
+          echo "seedFiles 입력 결과: ${SEED_DISPLAY}"
+
+          ssh -i ~/.ssh/sopkathon-reset-key -p "$EC2_SSH_PORT_RESOLVED" "$EC2_USERNAME@$EC2_HOST" \
+            "SEED_MODE='$SEED_MODE' SEED_LOCATIONS='$SEED_LOCATIONS' bash -s" <<'REMOTE'
+          set -euo pipefail
+
+          backup_file=""
+
+          fail() {
+            echo "::error::Reset DB 원격 실행 실패: $1"
+            exit 1
+          }
+
+          read_env_value() {
+            key="$1"
+            file="$2"
+            awk -F= -v target="$key" '
+              $1 == target {
+                value = $0
+                sub(/^[^=]*=/, "", value)
+                gsub(/^"/, "", value)
+                gsub(/"$/, "", value)
+                print value
+                exit
+              }
+            ' "$file"
+          }
+
+          wait_health() {
+            env_file="$1"
+            label="$2"
+            host_port="$(read_env_value HOST_PORT "$env_file")"
+            host_port="${host_port:-8080}"
+
+            echo "=== Reset DB: ${label} 헬스 체크 시작. URL=http://localhost:${host_port}/actuator/health ==="
+            for i in $(seq 1 24); do
+              echo "헬스 체크 시도: ${i}/24"
+              if curl -fsS "http://localhost:${host_port}/actuator/health" | grep -q '"status":"UP"'; then
+                echo "=== Reset DB: ${label} 헬스 체크 성공 ==="
+                return 0
+              fi
+              sleep 5
+            done
+
+            echo "=== Reset DB: ${label} 헬스 체크 실패. 애플리케이션 로그를 출력합니다 ==="
+            docker compose -f docker-compose.prod.yml --env-file "$env_file" logs --tail=160 app || true
+            fail "${label} 상태에서 /actuator/health 가 제한 시간 안에 UP이 되지 않았습니다."
+          }
+
+          restore_safe_env_on_error() {
+            exit_code="$?"
+            if [ "$exit_code" -ne 0 ]; then
+              echo "=== Reset DB: 오류 감지. 안전 설정 복구를 시도합니다 ==="
+              if [ -f .env.after-reset ]; then
+                cp .env.after-reset .env
+                docker compose -f docker-compose.prod.yml --env-file .env up -d --force-recreate --remove-orphans app || true
+                echo "안전 설정 복구 시도 완료: DB_DDL_AUTO=update, DB_SQL_INIT_MODE=never"
+              else
+                echo "::error::.env.after-reset 파일이 없어 자동 복구하지 못했습니다."
+              fi
+              if [ -n "$backup_file" ]; then
+                echo "초기화 전 .env 백업 파일: ${backup_file}"
+              fi
+            fi
+            exit "$exit_code"
+          }
+
+          trap restore_safe_env_on_error EXIT
+
+          cd ~/sopkathon || fail "~/sopkathon 디렉터리가 없습니다. 먼저 CD workflow로 한 번 배포하세요."
+          [ -f docker-compose.prod.yml ] || fail "docker-compose.prod.yml이 없습니다. 먼저 CD workflow로 배포 파일을 업로드하세요."
+          [ -f .env ] || fail ".env가 없습니다. 먼저 CD workflow로 배포를 완료하세요."
+          docker compose version >/dev/null 2>&1 || fail "EC2에 Docker Compose 플러그인이 없습니다."
+
+          echo "=== Reset DB: 현재 배포 상태 확인 ==="
+          current_image="$(read_env_value APP_IMAGE .env)"
+          current_image="${current_image:-알 수 없음}"
+          echo "현재 배포 image: ${current_image}"
+          echo "Reset DB는 새 image를 pull/build하지 않고, 현재 배포 image로 DB만 초기화합니다."
+
+          timestamp="$(date +%Y%m%d-%H%M%S)"
+          backup_file=".env.before-reset-${timestamp}"
+          cp .env "$backup_file"
+          chmod 600 "$backup_file"
+          echo ".env 백업 생성: ${backup_file}"
+
+          # 기존 .env에서 DB 초기화 관련 key만 제거한 뒤 reset용/복구용 env 파일을 만든다.
+          # secret 값은 로그에 출력하지 않고 파일 안에서만 유지한다.
+          awk -F= '
+            $1 != "DB_DDL_AUTO" &&
+            $1 != "DB_SQL_INIT_MODE" &&
+            $1 != "DB_SQL_INIT_DATA_LOCATIONS" { print }
+          ' .env > .env.reset
+          cp .env.reset .env.after-reset
+
+          {
+            printf 'DB_DDL_AUTO="create"\n'
+            printf 'DB_SQL_INIT_MODE="%s"\n' "$SEED_MODE"
+            if [ -n "$SEED_LOCATIONS" ]; then
+              printf 'DB_SQL_INIT_DATA_LOCATIONS="%s"\n' "$SEED_LOCATIONS"
+            fi
+          } >> .env.reset
+
+          {
+            printf 'DB_DDL_AUTO="update"\n'
+            printf 'DB_SQL_INIT_MODE="never"\n'
+            if [ -n "$SEED_LOCATIONS" ]; then
+              printf 'DB_SQL_INIT_DATA_LOCATIONS="%s"\n' "$SEED_LOCATIONS"
+            fi
+          } >> .env.after-reset
+
+          chmod 600 .env.reset .env.after-reset
+
+          echo "=== Reset DB: reset용 Docker Compose 설정 검증 ==="
+          echo "적용할 임시 설정: DB_DDL_AUTO=create, DB_SQL_INIT_MODE=${SEED_MODE}"
+          if [ -n "$SEED_LOCATIONS" ]; then
+            echo "적용할 seed 경로: ${SEED_LOCATIONS}"
+          else
+            echo "적용할 seed 경로: 없음"
+          fi
+          docker compose -f docker-compose.prod.yml --env-file .env.reset config --quiet || fail ".env.reset 또는 docker-compose.prod.yml 설정이 잘못되었습니다."
+
+          echo "=== Reset DB: DB 초기화 모드로 애플리케이션 재시작 ==="
+          echo "주의: 이 단계에서 Hibernate ddl-auto=create가 실행되어 기존 RDS 테이블/데이터가 재생성됩니다."
+          docker compose -f docker-compose.prod.yml --env-file .env.reset up -d --force-recreate --remove-orphans app
+          wait_health ".env.reset" "초기화 모드"
+
+          echo "=== Reset DB: 안전 설정으로 되돌리기 ==="
+          cp .env.after-reset .env
+          docker compose -f docker-compose.prod.yml --env-file .env config --quiet || fail "안전 설정 .env 검증에 실패했습니다."
+          docker compose -f docker-compose.prod.yml --env-file .env up -d --force-recreate --remove-orphans app
+          wait_health ".env" "안전 모드"
+
+          echo "=== Reset DB: 컨테이너 상태 ==="
+          docker compose -f docker-compose.prod.yml --env-file .env ps
+
+          echo "=== Reset DB: 완료 ==="
+          echo "최종 설정: DB_DDL_AUTO=update, DB_SQL_INIT_MODE=never"
+          echo "초기화 전 .env 백업 파일: ${backup_file}"
+          trap - EXIT
+          REMOTE
+
+          echo "=== Reset DB: EC2 원격 초기화 완료 ==="

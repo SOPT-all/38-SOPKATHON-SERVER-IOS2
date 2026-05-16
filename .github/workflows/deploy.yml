@@ -1,0 +1,400 @@
+name: CD
+
+on:
+  # main에 merge/push되면 Docker image를 만들고 EC2에 반영한다.
+  push:
+    branches:
+      - main
+  # AWS와 GitHub Variables/Secrets를 세팅한 뒤에는 GitHub Actions 화면에서 수동 재배포도 가능하다.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  # 같은 브랜치의 배포가 겹치면 오래된 배포를 취소한다.
+  group: cd-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Docker Hub repository 이름이다. Docker Hub 계정명은 민감값이 아니므로 GitHub Variables에서 읽는다.
+  IMAGE_REPOSITORY: ${{ vars.DOCKERHUB_USERNAME }}/sopkathon-server
+  # 1GB 안팎의 작은 EC2에서도 Java가 과도하게 heap을 잡지 않도록 JVM 기본값을 제한한다.
+  DEFAULT_JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=70 -XX:+ExitOnOutOfMemoryError
+
+jobs:
+  preflight:
+    name: 배포 설정 확인
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      ready: ${{ steps.check.outputs.ready }}
+      missing: ${{ steps.check.outputs.missing }}
+
+    steps:
+      - name: 필수 GitHub Variables/Secrets 확인
+        id: check
+        env:
+          DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+          EC2_HOST: ${{ vars.EC2_HOST }}
+          EC2_USERNAME: ${{ vars.EC2_USERNAME }}
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+          DB_URL: ${{ vars.DB_URL }}
+          DB_USERNAME: ${{ vars.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          APP_JWT_SECRET: ${{ secrets.APP_JWT_SECRET }}
+        run: |
+          set -euo pipefail
+          echo "=== CD: 필수 GitHub Variables/Secrets 확인 시작 ==="
+          echo "위치: Repository -> Settings -> Secrets and variables -> Actions"
+
+          required_variables=(
+            DOCKERHUB_USERNAME
+            EC2_HOST
+            EC2_USERNAME
+            DB_URL
+            DB_USERNAME
+          )
+
+          required_secrets=(
+            DOCKERHUB_TOKEN
+            EC2_SSH_KEY
+            DB_PASSWORD
+            APP_JWT_SECRET
+          )
+
+          missing=()
+          for name in "${required_variables[@]}"; do
+            if [ -z "${!name:-}" ]; then
+              missing+=("Variable:${name}")
+            fi
+          done
+
+          for name in "${required_secrets[@]}"; do
+            if [ -z "${!name:-}" ]; then
+              missing+=("Secret:${name}")
+            fi
+          done
+
+          if [ "${#missing[@]}" -gt 0 ]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "missing=${missing[*]}" >> "$GITHUB_OUTPUT"
+            echo "::notice::아직 CD를 실행할 수 없습니다. 누락된 GitHub Variables/Secrets가 있습니다."
+            for item in "${missing[@]}"; do
+              echo "::notice::누락: ${item}"
+            done
+            echo "해결 방법:"
+            echo "1. docs/operations/github-actions-variables.template.env 를 보고 Variables를 채웁니다."
+            echo "2. docs/operations/github-actions-secrets.template.env 를 보고 Secrets를 채웁니다."
+            echo "3. 다시 main에 push하거나 CD workflow를 수동 실행합니다."
+            echo "=== CD: AWS/EC2/RDS 생성 후 누락된 Variables/Secrets를 채우면 다음 실행부터 배포됩니다. ==="
+            exit 0
+          fi
+
+          echo "ready=true" >> "$GITHUB_OUTPUT"
+          echo "missing=" >> "$GITHUB_OUTPUT"
+          echo "=== CD: 필수 GitHub Variables/Secrets 확인 완료 ==="
+
+  not-configured:
+    name: 배포 대기
+    runs-on: ubuntu-latest
+    needs: preflight
+    if: ${{ needs.preflight.outputs.ready != 'true' }}
+    timeout-minutes: 5
+
+    steps:
+      - name: CD 대기 안내
+        run: |
+          echo "=== CD: 배포를 건너뜁니다 ==="
+          echo "이 workflow는 미리 커밋해둘 수 있습니다."
+          echo "EC2/RDS 생성 후 GitHub Variables/Secrets를 채우면 main push 또는 수동 실행으로 바로 동작합니다."
+          echo "누락된 Variables/Secrets: ${{ needs.preflight.outputs.missing }}"
+
+  build-and-push:
+    name: Docker 이미지 빌드 및 Push
+    runs-on: ubuntu-latest
+    needs: preflight
+    if: ${{ needs.preflight.outputs.ready == 'true' }}
+    timeout-minutes: 25
+    outputs:
+      image: ${{ steps.image.outputs.image }}
+
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v6
+
+      - name: JDK 21 준비
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Gradle 캐시 준비
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-provider: basic
+
+      - name: bootJar 생성
+        run: |
+          set -euo pipefail
+          trap 'echo "::error::CD 빌드 실패: ./gradlew bootJar -x test --no-daemon 명령이 실패했습니다. 컴파일 오류나 application.yml 설정 오류를 확인하세요."' ERR
+
+          echo "=== CD: Spring Boot JAR 빌드 시작 ==="
+          echo "목적: 테스트 코드는 배포 gate에서 제외하고, 컴파일과 실행 JAR 생성 가능 여부만 확인합니다."
+          echo "실행 명령어: ./gradlew bootJar -x test --no-daemon"
+
+          ./gradlew bootJar -x test --no-daemon
+
+          echo "=== CD: Spring Boot JAR 빌드 완료 ==="
+
+      - name: Docker 이미지 태그 계산
+        id: image
+        run: |
+          set -euo pipefail
+          trap 'echo "::error::Docker 이미지 태그 계산 실패: DOCKERHUB_USERNAME Variable이 비어 있거나 GitHub SHA 값을 읽지 못했습니다."' ERR
+
+          short_sha="${GITHUB_SHA::12}"
+          image_tag="sha-${short_sha}"
+          image="${IMAGE_REPOSITORY}:${image_tag}"
+
+          echo "tag=${image_tag}" >> "$GITHUB_OUTPUT"
+          echo "image=${image}" >> "$GITHUB_OUTPUT"
+          echo "latest=${IMAGE_REPOSITORY}:latest" >> "$GITHUB_OUTPUT"
+
+          echo "=== CD: 이번 배포 이미지 ==="
+          echo "${image}"
+
+      - name: Docker Hub 로그인
+        uses: docker/login-action@v4
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: 멀티 아키텍처 빌드 준비
+        uses: docker/setup-qemu-action@v3
+
+      - name: Docker Buildx 준비
+        uses: docker/setup-buildx-action@v4
+
+      - name: Docker 이미지 빌드 및 Push
+        uses: docker/build-push-action@v7
+        with:
+          # Dockerfile이 build/libs/*.jar를 복사하므로 Git context가 아니라 현재 workspace context를 사용한다.
+          context: .
+          file: ./Dockerfile
+          platforms: ${{ vars.DOCKER_PLATFORM || 'linux/arm64' }}
+          push: true
+          tags: |
+            ${{ steps.image.outputs.image }}
+            ${{ steps.image.outputs.latest }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    name: EC2 배포
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    timeout-minutes: 15
+
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v6
+
+      - name: 배포 파일 생성
+        env:
+          APP_IMAGE: ${{ needs.build-and-push.outputs.image }}
+          EC2_HOST: ${{ vars.EC2_HOST }}
+          HOST_PORT: ${{ vars.HOST_PORT }}
+          SERVER_PORT: ${{ vars.SERVER_PORT }}
+          JAVA_TOOL_OPTIONS: ${{ vars.JAVA_TOOL_OPTIONS }}
+          DB_DDL_AUTO: ${{ vars.DB_DDL_AUTO }}
+          DB_DEFER_DATASOURCE_INITIALIZATION: ${{ vars.DB_DEFER_DATASOURCE_INITIALIZATION }}
+          DB_SQL_INIT_MODE: ${{ vars.DB_SQL_INIT_MODE }}
+          DB_SQL_INIT_DATA_LOCATIONS: ${{ vars.DB_SQL_INIT_DATA_LOCATIONS }}
+          APP_SECURITY_PERMIT_ALL: ${{ vars.APP_SECURITY_PERMIT_ALL }}
+          DB_URL: ${{ vars.DB_URL }}
+          DB_USERNAME: ${{ vars.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          APP_CORS_ALLOWED_ORIGINS: ${{ vars.APP_CORS_ALLOWED_ORIGINS }}
+          APP_CORS_ALLOWED_METHODS: ${{ vars.APP_CORS_ALLOWED_METHODS }}
+          APP_CORS_ALLOWED_HEADERS: ${{ vars.APP_CORS_ALLOWED_HEADERS }}
+          APP_CORS_EXPOSED_HEADERS: ${{ vars.APP_CORS_EXPOSED_HEADERS }}
+          APP_CORS_ALLOW_CREDENTIALS: ${{ vars.APP_CORS_ALLOW_CREDENTIALS }}
+          APP_JWT_SECRET: ${{ secrets.APP_JWT_SECRET }}
+          APP_SWAGGER_SERVER_URL: ${{ vars.APP_SWAGGER_SERVER_URL }}
+          APP_SWAGGER_SERVER_DESCRIPTION: ${{ vars.APP_SWAGGER_SERVER_DESCRIPTION }}
+        run: |
+          set -euo pipefail
+          trap 'echo "::error::배포 파일 생성 실패: docker-compose.prod.yml 복사 또는 .env 생성 중 문제가 발생했습니다. GitHub Variables/Secrets 값에 줄바꿈, 따옴표, 특수문자가 있는지 확인하세요."' ERR
+
+          echo "=== CD: EC2로 보낼 docker-compose.prod.yml과 .env 생성 시작 ==="
+
+          deploy_dir="${RUNNER_TEMP}/sopkathon-deploy"
+          mkdir -p "$deploy_dir"
+          cp docker-compose.prod.yml "$deploy_dir/docker-compose.prod.yml"
+
+          : > "$deploy_dir/.env"
+
+          write_env() {
+            key="$1"
+            value="$2"
+            # Docker Compose --env-file과 EC2의 점검 스크립트가 모두 읽을 수 있게 double-quote로 저장한다.
+            # secret에 공백, #, &, 작은따옴표, 달러 기호가 있어도 값이 잘리지 않게 이스케이프한다.
+            value=${value//\\/\\\\}
+            value=${value//\"/\\\"}
+            value=${value//\$/\\\$}
+            value=${value//\`/\\\`}
+            printf "%s=\"%s\"\n" "$key" "$value" >> "$deploy_dir/.env"
+          }
+
+          write_env "APP_IMAGE" "$APP_IMAGE"
+          write_env "SPRING_PROFILES_ACTIVE" "prod"
+          resolved_host_port="${HOST_PORT:-8080}"
+          write_env "HOST_PORT" "$resolved_host_port"
+          write_env "SERVER_PORT" "${SERVER_PORT:-8080}"
+          write_env "JAVA_TOOL_OPTIONS" "${JAVA_TOOL_OPTIONS:-$DEFAULT_JAVA_TOOL_OPTIONS}"
+          write_env "DB_DDL_AUTO" "${DB_DDL_AUTO:-update}"
+          write_env "DB_DEFER_DATASOURCE_INITIALIZATION" "${DB_DEFER_DATASOURCE_INITIALIZATION:-true}"
+          write_env "DB_SQL_INIT_MODE" "${DB_SQL_INIT_MODE:-never}"
+          write_env "DB_SQL_INIT_DATA_LOCATIONS" "${DB_SQL_INIT_DATA_LOCATIONS:-optional:classpath:db/seed/local-test-account.sql}"
+          write_env "DB_URL" "$DB_URL"
+          write_env "DB_USERNAME" "$DB_USERNAME"
+          write_env "DB_PASSWORD" "$DB_PASSWORD"
+          write_env "APP_SECURITY_PERMIT_ALL" "${APP_SECURITY_PERMIT_ALL:-false}"
+          write_env "APP_CORS_ALLOWED_ORIGINS" "${APP_CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173}"
+          write_env "APP_CORS_ALLOWED_METHODS" "${APP_CORS_ALLOWED_METHODS:-GET,POST,PUT,PATCH,DELETE,OPTIONS}"
+          write_env "APP_CORS_ALLOWED_HEADERS" "${APP_CORS_ALLOWED_HEADERS:-*}"
+          write_env "APP_CORS_EXPOSED_HEADERS" "${APP_CORS_EXPOSED_HEADERS:-Authorization,Location}"
+          write_env "APP_CORS_ALLOW_CREDENTIALS" "${APP_CORS_ALLOW_CREDENTIALS:-true}"
+          write_env "APP_JWT_ISSUER" "sopkathon"
+          write_env "APP_JWT_SECRET" "$APP_JWT_SECRET"
+          write_env "APP_JWT_ACCESS_TOKEN_EXPIRATION_MINUTES" "2880"
+          write_env "APP_SWAGGER_SERVER_URL" "${APP_SWAGGER_SERVER_URL:-http://${EC2_HOST}:${resolved_host_port}}"
+          write_env "APP_SWAGGER_SERVER_DESCRIPTION" "${APP_SWAGGER_SERVER_DESCRIPTION:-Production}"
+
+          chmod 600 "$deploy_dir/.env"
+          echo "DEPLOY_DIR=$deploy_dir" >> "$GITHUB_ENV"
+          echo "생성된 .env에는 DB 비밀번호와 JWT 서명 키가 포함됩니다. 로그에는 값을 출력하지 않습니다."
+          echo "=== CD: 배포 파일 생성 완료 ==="
+
+      - name: SSH 키 준비
+        env:
+          EC2_HOST: ${{ vars.EC2_HOST }}
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+          EC2_SSH_PORT: ${{ vars.EC2_SSH_PORT }}
+        run: |
+          set -euo pipefail
+          trap 'echo "::error::SSH 키 준비 실패: EC2_SSH_KEY Secret 형식, EC2_HOST Variable, EC2_SSH_PORT 값을 확인하세요."' ERR
+
+          echo "=== CD: SSH 접속 준비 시작 ==="
+
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$EC2_SSH_KEY" > ~/.ssh/sopkathon-deploy-key
+          chmod 600 ~/.ssh/sopkathon-deploy-key
+
+          port="${EC2_SSH_PORT:-22}"
+          ssh-keyscan -p "$port" -H "$EC2_HOST" >> ~/.ssh/known_hosts
+
+          echo "EC2_SSH_PORT_RESOLVED=$port" >> "$GITHUB_ENV"
+          echo "=== CD: SSH 접속 준비 완료 ==="
+
+      - name: EC2에 배포 파일 업로드
+        env:
+          EC2_HOST: ${{ vars.EC2_HOST }}
+          EC2_USERNAME: ${{ vars.EC2_USERNAME }}
+        run: |
+          set -euo pipefail
+          trap 'echo "::error::EC2 파일 업로드 실패: EC2 보안 그룹의 SSH 포트, EC2_USERNAME, EC2_SSH_KEY 권한, ~/sopkathon 디렉터리 권한을 확인하세요."' ERR
+
+          echo "=== CD: EC2 배포 디렉터리 준비 시작 ==="
+          ssh -i ~/.ssh/sopkathon-deploy-key -p "$EC2_SSH_PORT_RESOLVED" "$EC2_USERNAME@$EC2_HOST" \
+            "mkdir -p ~/sopkathon"
+
+          echo "=== CD: docker-compose.prod.yml과 .env 업로드 시작 ==="
+          scp -i ~/.ssh/sopkathon-deploy-key -P "$EC2_SSH_PORT_RESOLVED" \
+            "$DEPLOY_DIR/docker-compose.prod.yml" "$DEPLOY_DIR/.env" \
+            "$EC2_USERNAME@$EC2_HOST:~/sopkathon/"
+          echo "=== CD: 배포 파일 업로드 완료 ==="
+
+      - name: EC2에서 Docker 이미지 pull 및 컨테이너 재시작
+        env:
+          EC2_HOST: ${{ vars.EC2_HOST }}
+          EC2_USERNAME: ${{ vars.EC2_USERNAME }}
+          DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          trap 'echo "::error::EC2 배포 명령 실패: 아래 원격 로그에서 Docker 로그인, docker compose, RDS 연결, health check 실패 원인을 확인하세요."' ERR
+
+          echo "=== CD: EC2 Docker Hub 로그인 시작 ==="
+          printf '%s\n' "$DOCKERHUB_TOKEN" | ssh -i ~/.ssh/sopkathon-deploy-key -p "$EC2_SSH_PORT_RESOLVED" "$EC2_USERNAME@$EC2_HOST" \
+            "docker login -u '$DOCKERHUB_USERNAME' --password-stdin"
+
+          echo "=== CD: EC2 배포 명령 실행 시작 ==="
+          ssh -i ~/.ssh/sopkathon-deploy-key -p "$EC2_SSH_PORT_RESOLVED" "$EC2_USERNAME@$EC2_HOST" 'bash -s' <<'REMOTE'
+          set -euo pipefail
+
+          fail() {
+            echo "::error::CD 원격 배포 실패: $1"
+            exit 1
+          }
+
+          read_env_value() {
+            key="$1"
+            file="$2"
+            awk -F= -v target="$key" '
+              $1 == target {
+                value = $0
+                sub(/^[^=]*=/, "", value)
+                gsub(/^"/, "", value)
+                gsub(/"$/, "", value)
+                print value
+                exit
+              }
+            ' "$file"
+          }
+
+          cd ~/sopkathon
+          [ -f docker-compose.prod.yml ] || fail "docker-compose.prod.yml이 없습니다. CD의 업로드 단계가 실패했을 수 있습니다."
+          [ -f .env ] || fail ".env가 없습니다. CD의 배포 파일 생성/업로드 단계를 확인하세요."
+          docker compose version >/dev/null 2>&1 || fail "EC2에 Docker Compose 플러그인이 없습니다. Docker 설치 상태를 확인하세요."
+
+          echo "=== CD: Docker Compose 설정 검증 ==="
+          docker compose -f docker-compose.prod.yml --env-file .env config --quiet || fail "docker-compose.prod.yml 또는 .env 값이 잘못되었습니다."
+
+          echo "=== CD: 배포 전 디스크/메모리 상태 ==="
+          df -h .
+          free -h || true
+
+          echo "=== CD: Docker 이미지 pull 시작 ==="
+          docker compose -f docker-compose.prod.yml --env-file .env pull app
+
+          echo "=== CD: 애플리케이션 컨테이너 반영 시작 ==="
+          docker compose -f docker-compose.prod.yml --env-file .env up -d --remove-orphans
+
+          echo "=== CD: 컨테이너 상태 확인 ==="
+          docker compose -f docker-compose.prod.yml --env-file .env ps
+
+          host_port="$(read_env_value HOST_PORT .env)"
+          host_port="${host_port:-8080}"
+
+          echo "=== CD: 헬스 체크 시작 ==="
+          for i in $(seq 1 18); do
+            echo "헬스 체크 시도: ${i}/18"
+            if curl -fsS "http://localhost:${host_port}/actuator/health" | grep -q '"status":"UP"'; then
+              echo "=== CD: 헬스 체크 성공. 배포 완료 ==="
+              docker image prune -f
+              exit 0
+            fi
+            sleep 5
+          done
+
+          echo "=== CD: 헬스 체크 실패. 애플리케이션 로그를 출력합니다 ==="
+          docker compose -f docker-compose.prod.yml --env-file .env logs --tail=200 app
+          fail "http://localhost:${host_port}/actuator/health 가 제한 시간 안에 UP이 되지 않았습니다. RDS 연결, DB_DDL_AUTO, APP_JWT_SECRET, 서버 포트를 확인하세요."
+          REMOTE

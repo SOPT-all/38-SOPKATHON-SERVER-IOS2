@@ -2,6 +2,7 @@ name: sopkathon
 
 services:
   mysql:
+    # 로컬 개발 전용 MySQL이다. 공유 테스트 서버는 RDS MySQL을 사용한다.
     image: mysql:8.4
     container_name: sopkathon-mysql-local
     restart: unless-stopped
@@ -27,6 +28,8 @@ services:
       start_period: 30s
 
   app:
+    # 기본 quick start는 IntelliJ/Gradle로 앱을 실행한다.
+    # 컨테이너로 앱까지 띄우고 싶을 때만 --profile app을 사용한다.
     profiles: ["app"]
     build:
       context: .
@@ -39,17 +42,30 @@ services:
         condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: local
-      SERVER_PORT: 8080
+      SERVER_PORT: ${SERVER_PORT:-8080}
+      # create=초기화, update=보존, validate=검증.
+      DB_DDL_AUTO: ${DB_DDL_AUTO:-create}
+      DB_DEFER_DATASOURCE_INITIALIZATION: ${DB_DEFER_DATASOURCE_INITIALIZATION:-true}
       DB_URL: jdbc:mysql://mysql:3306/${DB_NAME:-sopkathon}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8
       DB_USERNAME: ${DB_USERNAME:-sopt}
       DB_PASSWORD: ${DB_PASSWORD:-sopt}
-      APP_CORS_ALLOWED_ORIGINS: ${APP_CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:5173}
+      # always=seed 실행, never=끄기.
+      DB_SQL_INIT_MODE: ${DB_SQL_INIT_MODE:-always}
+      DB_SQL_INIT_DATA_LOCATIONS: ${DB_SQL_INIT_DATA_LOCATIONS:-optional:classpath:db/seed/local-test-account.sql}
+      APP_SECURITY_PERMIT_ALL: ${APP_SECURITY_PERMIT_ALL:-true}
+      APP_CORS_ALLOWED_ORIGINS: ${APP_CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173}
+      APP_CORS_ALLOWED_METHODS: ${APP_CORS_ALLOWED_METHODS:-GET,POST,PUT,PATCH,DELETE,OPTIONS}
+      APP_CORS_ALLOWED_HEADERS: ${APP_CORS_ALLOWED_HEADERS:-*}
+      APP_CORS_EXPOSED_HEADERS: ${APP_CORS_EXPOSED_HEADERS:-Authorization,Location}
+      APP_CORS_ALLOW_CREDENTIALS: ${APP_CORS_ALLOW_CREDENTIALS:-true}
       APP_JWT_ISSUER: ${APP_JWT_ISSUER:-sopkathon}
       APP_JWT_SECRET: ${APP_JWT_SECRET:-local-development-secret-key-change-this-value-at-least-32-bytes}
-      APP_SWAGGER_SERVER_URL: http://localhost:8080
-      APP_SWAGGER_SERVER_DESCRIPTION: Local Docker Compose
+      APP_JWT_ACCESS_TOKEN_EXPIRATION_MINUTES: ${APP_JWT_ACCESS_TOKEN_EXPIRATION_MINUTES:-2880}
+      APP_SWAGGER_SERVER_URL: ${APP_SWAGGER_SERVER_URL:-http://localhost:8080}
+      APP_SWAGGER_SERVER_DESCRIPTION: ${APP_SWAGGER_SERVER_DESCRIPTION:-Local Docker Compose}
     ports:
-      - "${SERVER_PORT:-8080}:8080"
+      # HOST_PORT는 노트북에서 접근할 포트, SERVER_PORT는 컨테이너 내부 Spring Boot 포트다.
+      - "${HOST_PORT:-8080}:${SERVER_PORT:-8080}"
 
 volumes:
   mysql-local-data:
