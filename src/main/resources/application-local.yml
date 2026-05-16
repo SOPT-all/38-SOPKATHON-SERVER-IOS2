@@ -1,19 +1,32 @@
+
+# 노트북 개발용 프로필
+
 spring:
   docker:
     compose:
+      # IntelliJ/Gradle로 앱을 실행할 때 로컬 MySQL compose만 자동으로 준비한다.
       file: docker-compose.local.yml
       lifecycle-management: start-only
   datasource:
+    # 로컬 JVM에서 실행할 때는 host port 13306으로 MySQL에 붙는다.
     url: ${DB_URL:jdbc:mysql://localhost:13306/sopkathon?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8}
     username: ${DB_USERNAME:sopt}
     password: ${DB_PASSWORD:sopt}
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
+    # 학습 중 SQL을 바로 확인하기 좋게 local에서만 켠다.
     show-sql: true
-  flyway:
-    clean-disabled: false
+  sql:
+    init:
+      # local 기본은 seed 실행.
+      mode: ${DB_SQL_INIT_MODE:always}
 
 logging:
   level:
     org.hibernate.SQL: debug
     org.sopt.sopkathon: debug
+
+app:
+  security:
+    # MVP 개발 중에는 새 API가 401에 막히지 않도록 local만 기본 true다.
+    permit-all: ${APP_SECURITY_PERMIT_ALL:true}

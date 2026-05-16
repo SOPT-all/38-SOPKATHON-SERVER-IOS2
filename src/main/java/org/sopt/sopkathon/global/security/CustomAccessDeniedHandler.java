@@ -6,7 +6,6 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
-import org.sopt.sopkathon.global.error.ErrorCode;
 import org.sopt.sopkathon.global.error.FieldErrorResponse;
 import org.sopt.sopkathon.global.error.GlobalErrorResponse;
 import org.sopt.sopkathon.global.web.TraceIdFilter;
@@ -31,17 +30,18 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
             HttpServletResponse response,
             AccessDeniedException accessDeniedException
     ) throws IOException {
+        SecurityErrorCode errorCode = SecurityErrorCode.AUTH_FORBIDDEN;
         GlobalErrorResponse body = new GlobalErrorResponse(
                 false,
-                ErrorCode.AUTH_FORBIDDEN.httpStatus().value(),
-                ErrorCode.AUTH_FORBIDDEN.code(),
-                ErrorCode.AUTH_FORBIDDEN.message(),
+                errorCode.httpStatus().value(),
+                errorCode.code(),
+                errorCode.message(),
                 request.getRequestURI(),
                 traceId(request, response),
                 Instant.now(),
                 List.<FieldErrorResponse>of()
         );
-        response.setStatus(ErrorCode.AUTH_FORBIDDEN.httpStatus().value());
+        response.setStatus(errorCode.httpStatus().value());
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         jsonMapper.writeValue(response.getWriter(), body);

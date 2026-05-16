@@ -10,6 +10,7 @@ public class BusinessException extends RuntimeException {
     }
 
     public BusinessException(ErrorCode errorCode, String message) {
+        // 같은 ErrorCode라도 상황별 메시지를 더 구체적으로 내려야 할 때 사용한다.
         super(message);
         this.errorCode = errorCode;
     }

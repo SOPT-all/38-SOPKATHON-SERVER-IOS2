@@ -3,7 +3,6 @@ package org.sopt.sopkathon.global.config;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
-import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,12 +27,13 @@ public class OpenApiConfig {
         return new OpenAPI()
                 .info(new Info()
                         .title("SOPKATHON Backend API")
-                        .description("1박2일 해커톤에서 웹/Android/iOS 팀과 빠르게 협업하기 위한 백엔드 API 문서입니다.")
+                        .description("SOPKATHON 해커톤 백엔드 API 문서입니다.")
                         .version("v1"))
                 .addServersItem(new Server()
                         .url(serverUrl)
                         .description(serverDescription))
-                .components(new Components().addSecuritySchemes(JWT_SCHEME_NAME, bearerScheme))
-                .addSecurityItem(new SecurityRequirement().addList(JWT_SCHEME_NAME));
+                // 전역 security를 걸지 않는다. MVP 중 공개 API까지 자물쇠가 표시되면 클라이언트가 헷갈린다.
+                // 인증이 필요한 API가 생기면 해당 Controller 메서드에 @SecurityRequirement를 붙인다.
+                .components(new Components().addSecuritySchemes(JWT_SCHEME_NAME, bearerScheme));
     }
 }

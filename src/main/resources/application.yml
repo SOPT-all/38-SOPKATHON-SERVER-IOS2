@@ -2,24 +2,36 @@ spring:
   application:
     name: sopkathon
   profiles:
+    # 기본은 local이다. EC2/RDS 테스트 서버에서는 SPRING_PROFILES_ACTIVE=dev 또는 prod로 바꾼다.
     active: ${SPRING_PROFILES_ACTIVE:local}
   jackson:
+    # 서버 내부 시간은 UTC로 통일한다. 클라이언트에는 ISO-8601 문자열로 전달한다.
     time-zone: UTC
     default-property-inclusion: non_null
   jpa:
+    # OSIV를 끄면 Controller에서 지연 로딩에 의존하는 실수를 빨리 발견할 수 있다.
     open-in-view: false
+    # 테이블 생성 후 seed SQL을 실행한다.
+    defer-datasource-initialization: ${DB_DEFER_DATASOURCE_INITIALIZATION:true}
     hibernate:
-      ddl-auto: validate
+      # create=초기화, update=보존, validate=검증.
+      ddl-auto: ${DB_DDL_AUTO:create}
     properties:
       hibernate:
         format_sql: true
         jdbc:
+          # DB timestamp와 Java Instant 기준을 맞춘다.
           time_zone: UTC
-  flyway:
-    enabled: true
+  sql:
+    init:
+      # always=seed 실행, never=끄기.
+      mode: ${DB_SQL_INIT_MODE:never}
+      # seed SQL 위치.
+      data-locations: "${DB_SQL_INIT_DATA_LOCATIONS:optional:classpath:db/seed/local-test-account.sql}"
 
 server:
   port: ${SERVER_PORT:8080}
+  # EC2 앞단에 ALB/Nginx를 붙일 때 X-Forwarded-* 헤더를 Spring이 이해하게 한다.
   forward-headers-strategy: framework
 
 management:
@@ -43,17 +55,35 @@ springdoc:
     path: /v3/api-docs
 
 app:
+  security:
+    # local profile은 기본 true라 MVP 개발 중 인증이 막지 않는다.
+    # 인증/인가를 붙이기 시작하면 APP_SECURITY_PERMIT_ALL=false로 바꾼다.
+    permit-all: ${APP_SECURITY_PERMIT_ALL:false}
+    # 인증 없이 열어둘 경로다. 새 공개 API가 생기면 Java 코드보다 여기부터 추가한다.
+    public-endpoints:
+      - /
+      - /api/v1/auth/**
+      - /api/v1/examples/**
+      - /actuator/health
+      - /actuator/health/**
+      - /v3/api-docs/**
+      - /swagger-ui/**
+      - /swagger-ui.html
   cors:
-    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173}
+    # 웹 배포 URL이 생기면 여기에 추가한다. Android/iOS native 앱은 보통 CORS 영향을 받지 않는다.
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173}
     allowed-methods: ${APP_CORS_ALLOWED_METHODS:GET,POST,PUT,PATCH,DELETE,OPTIONS}
     allowed-headers: ${APP_CORS_ALLOWED_HEADERS:*}
     exposed-headers: ${APP_CORS_EXPOSED_HEADERS:Authorization,Location}
     allow-credentials: ${APP_CORS_ALLOW_CREDENTIALS:true}
   jwt:
+    # 해커톤 시연용 단순 JWT다.
+    # refresh token 없이 48시간 access token만 발급하므로, 로그아웃은 클라이언트가 토큰을 삭제하는 방식으로 처리한다.
+    # 실서비스로 전환한다면 refresh token, 서버 측 폐기, 만료 시간 단축을 다시 설계한다.
     issuer: ${APP_JWT_ISSUER:sopkathon}
     secret: ${APP_JWT_SECRET:local-development-secret-key-change-this-value-at-least-32-bytes}
-    access-token-expiration-minutes: ${APP_JWT_ACCESS_TOKEN_EXPIRATION_MINUTES:60}
-    refresh-token-expiration-days: ${APP_JWT_REFRESH_TOKEN_EXPIRATION_DAYS:14}
+    access-token-expiration-minutes: ${APP_JWT_ACCESS_TOKEN_EXPIRATION_MINUTES:2880}
   swagger:
+    # 배포 서버에서는 EC2 주소 또는 도메인으로 바꿔야 Swagger Try it out이 올바른 서버를 호출한다.
     server-url: ${APP_SWAGGER_SERVER_URL:http://localhost:8080}
     server-description: ${APP_SWAGGER_SERVER_DESCRIPTION:Local}

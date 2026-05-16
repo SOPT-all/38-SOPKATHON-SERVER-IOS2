@@ -20,13 +20,14 @@ class JwtTokenProviderTest {
     @DisplayName("access token을 만들고 인증 객체로 복원한다")
     void createAccessTokenAndAuthenticate() {
         JwtTokenProvider tokenProvider = new JwtTokenProvider(
-                new AppJwtProperties("test-issuer", SECRET, 60, 14),
+                new AppJwtProperties("test-issuer", SECRET, 2880),
                 CLOCK
         );
 
         String token = tokenProvider.createAccessToken(1L, "ROLE_USER");
         Authentication authentication = tokenProvider.getAuthentication(token);
 
+        assertThat(tokenProvider.getTokenType(token)).isEqualTo("access");
         assertThat(authentication.getName()).isEqualTo("1");
         assertThat(authentication.getPrincipal()).isEqualTo(new AuthenticatedUser(1L, "ROLE_USER"));
         assertThat(authentication.getAuthorities())
@@ -35,28 +36,14 @@ class JwtTokenProviderTest {
     }
 
     @Test
-    @DisplayName("refresh token은 refresh 타입 claim을 가진다")
-    void createRefreshToken() {
-        JwtTokenProvider tokenProvider = new JwtTokenProvider(
-                new AppJwtProperties("test-issuer", SECRET, 60, 14),
-                CLOCK
-        );
-
-        String token = tokenProvider.createRefreshToken(1L);
-
-        assertThat(tokenProvider.getTokenType(token)).isEqualTo("refresh");
-        assertThat(tokenProvider.getSubject(token)).isEqualTo("1");
-    }
-
-    @Test
     @DisplayName("issuer가 다르면 인증 객체로 복원할 수 없다")
     void tokenWithWrongIssuer() {
         JwtTokenProvider issuingProvider = new JwtTokenProvider(
-                new AppJwtProperties("issuer-a", SECRET, 60, 14),
+                new AppJwtProperties("issuer-a", SECRET, 2880),
                 CLOCK
         );
         JwtTokenProvider validatingProvider = new JwtTokenProvider(
-                new AppJwtProperties("issuer-b", SECRET, 60, 14),
+                new AppJwtProperties("issuer-b", SECRET, 2880),
                 CLOCK
         );
 
@@ -69,7 +56,7 @@ class JwtTokenProviderTest {
     @Test
     @DisplayName("만료된 token은 인증 객체로 복원할 수 없다")
     void expiredToken() {
-        AppJwtProperties properties = new AppJwtProperties("test-issuer", SECRET, 1, 14);
+        AppJwtProperties properties = new AppJwtProperties("test-issuer", SECRET, 1);
         JwtTokenProvider issuingProvider = new JwtTokenProvider(
                 properties,
                 Clock.fixed(Instant.parse("2020-01-01T00:00:00Z"), ZoneOffset.UTC)

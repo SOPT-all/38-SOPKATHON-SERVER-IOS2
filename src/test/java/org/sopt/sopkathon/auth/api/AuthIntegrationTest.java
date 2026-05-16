@@ -31,7 +31,7 @@ class AuthIntegrationTest extends IntegrationTestSupport {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.tokenType").value("Bearer"))
                 .andExpect(jsonPath("$.data.accessToken", not(blankOrNullString())))
-                .andExpect(jsonPath("$.data.refreshToken", not(blankOrNullString())));
+                .andExpect(jsonPath("$.data.refreshToken").doesNotExist());
 
         String loginJson = """
                 {
@@ -46,6 +46,6 @@ class AuthIntegrationTest extends IntegrationTestSupport {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.accessToken", not(blankOrNullString())))
-                .andExpect(jsonPath("$.data.refreshToken", not(blankOrNullString())));
+                .andExpect(jsonPath("$.data.refreshToken").doesNotExist());
     }
 }

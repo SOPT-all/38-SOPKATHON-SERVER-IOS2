@@ -1,14 +1,16 @@
 spring:
   docker:
     compose:
+      # 통합 테스트는 Testcontainers MySQL을 직접 띄우므로 Spring Docker Compose는 끈다.
       enabled: false
   jpa:
     hibernate:
-      ddl-auto: validate
+      # 테스트 컨테이너는 매번 새 DB라 drop 정리 없이 schema 생성만 해도 충분하다.
+      ddl-auto: create
     show-sql: false
-  flyway:
-    enabled: true
-    clean-disabled: false
+  sql:
+    init:
+      mode: never
 
 logging:
   level:

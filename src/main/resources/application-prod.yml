@@ -1,11 +1,19 @@
 spring:
   datasource:
+    # prod는 실제 제출/시연 서버용이다. RDS 연결값과 JWT secret은 반드시 환경변수로 주입한다.
     url: ${DB_URL}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
+    hibernate:
+      # prod에서 DB_DDL_AUTO를 빼먹어도 데이터를 지우지 않게 update를 기본값으로 둔다.
+      ddl-auto: ${DB_DDL_AUTO:update}
     show-sql: false
+  sql:
+    init:
+      # prod 기본은 seed 끄기.
+      mode: ${DB_SQL_INIT_MODE:never}
 
 logging:
   level:

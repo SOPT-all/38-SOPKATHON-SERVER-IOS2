@@ -16,6 +16,7 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
+        // @CurrentUser를 Controller parameter에서 바로 쓸 수 있게 Spring MVC에 등록한다.
         resolvers.add(currentUserArgumentResolver);
     }
 }

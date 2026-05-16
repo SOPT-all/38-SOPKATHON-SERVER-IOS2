@@ -18,19 +18,8 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
-@EnableConfigurationProperties({AppJwtProperties.class, CorsProperties.class})
+@EnableConfigurationProperties({AppJwtProperties.class, AppSecurityProperties.class, CorsProperties.class})
 public class SecurityConfig {
-
-    private static final String[] PUBLIC_ENDPOINTS = {
-            "/",
-            "/api/v1/auth/**",
-            "/api/v1/examples/**",
-            "/actuator/health",
-            "/actuator/health/**",
-            "/v3/api-docs/**",
-            "/swagger-ui/**",
-            "/swagger-ui.html"
-    };
 
     @Bean
     public SecurityFilterChain securityFilterChain(
@@ -38,7 +27,8 @@ public class SecurityConfig {
             JwtAuthenticationFilter jwtAuthenticationFilter,
             CustomAuthenticationEntryPoint authenticationEntryPoint,
             CustomAccessDeniedHandler accessDeniedHandler,
-            CorsConfigurationSource corsConfigurationSource
+            CorsConfigurationSource corsConfigurationSource,
+            AppSecurityProperties securityProperties
     ) throws Exception {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
@@ -49,11 +39,21 @@ public class SecurityConfig {
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(authenticationEntryPoint)
                         .accessDeniedHandler(accessDeniedHandler))
-                .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
-                        .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
-                        .anyRequest().authenticated())
+                .authorizeHttpRequests(authorize -> {
+                    authorize
+                            .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                            .requestMatchers(securityProperties.publicEndpointMatchers()).permitAll();
+
+                    if (securityProperties.permitAll()) {
+                        // MVP 초반에는 새 API가 인증 때문에 막히지 않도록 local에서만 전체 허용한다.
+                        authorize.anyRequest().permitAll();
+                    } else {
+                        // 인증을 켠 뒤에는 공개 경로를 제외한 모든 API가 JWT를 요구한다.
+                        authorize
+                                .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+                                .anyRequest().authenticated();
+                    }
+                })
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
@@ -62,6 +62,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource(CorsProperties corsProperties) {
         CorsConfiguration configuration = new CorsConfiguration();
         if (corsProperties != null) {
+            // 웹 origin이 추가되면 application.yml 또는 APP_CORS_ALLOWED_ORIGINS만 수정한다.
             configuration.setAllowedOrigins(corsProperties.allowedOrigins());
             configuration.setAllowedMethods(corsProperties.allowedMethods());
             configuration.setAllowedHeaders(corsProperties.allowedHeaders());

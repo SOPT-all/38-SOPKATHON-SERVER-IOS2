@@ -1,8 +1,7 @@
 spring:
   autoconfigure:
+    # 대부분의 단위/컨트롤러 테스트는 DB 없이 빠르게 돌린다.
+    # 실제 MySQL 검증은 integration-test profile + Testcontainers가 담당한다.
     exclude:
       - org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration
       - org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfiguration
-      - org.springframework.boot.flyway.autoconfigure.FlywayAutoConfiguration
-  flyway:
-    enabled: false

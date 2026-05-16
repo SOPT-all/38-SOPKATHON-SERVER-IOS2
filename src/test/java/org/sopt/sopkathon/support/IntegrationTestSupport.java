@@ -12,6 +12,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.mysql.MySQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
+// 실제 MySQL이 필요한 통합 테스트용 베이스 클래스다.
+// @Tag("integration") 덕분에 ./scripts/test-fast.sh 에서는 제외되고, 전체 검증에서만 돈다.
 @Tag("integration")
 @Testcontainers(disabledWithoutDocker = true)
 @SpringBootTest

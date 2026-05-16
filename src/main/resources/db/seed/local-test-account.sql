@@ -6,4 +6,5 @@ values (
     'ROLE_USER',
     current_timestamp(6),
     current_timestamp(6)
-);
+)
+on duplicate key update email = email;

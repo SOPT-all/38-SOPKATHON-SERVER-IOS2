@@ -33,7 +33,6 @@ public class JwtTokenProvider {
     private static final String TOKEN_TYPE_CLAIM = "typ";
     private static final String ROLE_CLAIM = "role";
     private static final String ACCESS_TOKEN_TYPE = "access";
-    private static final String REFRESH_TOKEN_TYPE = "refresh";
 
     private final AppJwtProperties properties;
     private final Clock clock;
@@ -71,19 +70,6 @@ public class JwtTokenProvider {
         return encode(claims);
     }
 
-    public String createRefreshToken(Long memberId) {
-        Instant now = clock.instant();
-        JwtClaimsSet claims = JwtClaimsSet.builder()
-                .issuer(properties.issuer())
-                .subject(String.valueOf(memberId))
-                .id(UUID.randomUUID().toString())
-                .issuedAt(now)
-                .expiresAt(now.plus(properties.refreshTokenExpirationDays(), ChronoUnit.DAYS))
-                .claim(TOKEN_TYPE_CLAIM, REFRESH_TOKEN_TYPE)
-                .build();
-        return encode(claims);
-    }
-
     public Authentication getAuthentication(String token) {
         Jwt jwt = decode(token);
         Long memberId = Long.valueOf(jwt.getSubject());
@@ -96,16 +82,8 @@ public class JwtTokenProvider {
         );
     }
 
-    public String getSubject(String token) {
-        return decode(token).getSubject();
-    }
-
     public String getTokenType(String token) {
         return decode(token).getClaimAsString(TOKEN_TYPE_CLAIM);
-    }
-
-    public Instant getExpiresAt(String token) {
-        return decode(token).getExpiresAt();
     }
 
     private String encode(JwtClaimsSet claims) {
