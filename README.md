@@ -2,6 +2,10 @@
 
 1박2일 해커톤에서 Spring Boot 백엔드 담당자가 웹/모바일 팀과 빠르게 협업하기 위한 기본 템플릿이다. 로컬 실행, Swagger 확인, 기본 인증 흐름까지 바로 시작할 수 있게 구성되어 있다.
 
+## 문서 먼저 보기
+
+개발/협업/배포 문서의 첫 페이지는 [문서 포털](docs/README.md)이다.
+
 ## 기술 스택
 
 - Java 21
@@ -56,12 +60,12 @@ docker compose -f docker-compose.local.yml up -d mysql
 
 ## 문서
 
-해커톤 중에는 `docs/HACKATHON_GUIDE.md`부터 보면 된다. 문서 전체 입구는 `docs/README.md`다.
+해커톤 중에는 [해커톤 진행 가이드](docs/HACKATHON_GUIDE.md)부터 보면 된다. 문서 전체 입구는 [문서 포털](docs/README.md)이다.
 
 자주 보는 문서:
 
-- 해커톤 진행 순서: `docs/HACKATHON_GUIDE.md`
-- 설정 한눈에 보기: `docs/operations/infra.md`
-- 처음 개발하는 백엔드 팀원: `docs/guides/student-development-handbook.md`
-- 웹/모바일 연동: `docs/collaboration/client-collaboration.md`
-- 배포 준비/실행: `docs/runbooks/deploy.md`
+- 해커톤 진행 순서: [docs/HACKATHON_GUIDE.md](docs/HACKATHON_GUIDE.md)
+- 설정 한눈에 보기: [docs/operations/infra.md](docs/operations/infra.md)
+- 처음 개발하는 백엔드 팀원: [docs/guides/student-development-handbook.md](docs/guides/student-development-handbook.md)
+- 웹/모바일 연동: [docs/collaboration/client-collaboration.md](docs/collaboration/client-collaboration.md)
+- 배포 준비/실행: [docs/runbooks/deploy.md](docs/runbooks/deploy.md)
