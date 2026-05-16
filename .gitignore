@@ -76,3 +76,6 @@ out/
 
 ### Local-only docs ###
 /docs-local/
+
+### Markdown docs ###
+*.md
