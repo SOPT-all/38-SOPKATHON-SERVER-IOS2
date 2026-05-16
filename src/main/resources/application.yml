@@ -64,6 +64,8 @@ app:
       - /
       - /api/v1/auth/**
       - /api/v1/examples/**
+      - /api/v1/spots/stories/**
+      - /api/v1/stories/**
       - /actuator/health
       - /actuator/health/**
       - /v3/api-docs/**

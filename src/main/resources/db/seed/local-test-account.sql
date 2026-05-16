@@ -8,3 +8,11 @@ values (
     current_timestamp(6)
 )
 on duplicate key update email = email;
+
+insert into users (id, nickname)
+values (1, '핀고')
+on duplicate key update nickname = nickname;
+
+insert into spots (id, name)
+values (1, '성수동 카페거리')
+on duplicate key update name = name;

@@ -1,9 +1,8 @@
 package org.sopt.sopkathon.reaction.domain;
 
 public enum ReactionType {
-    FUNNY,
+    LIKE,
     EMPATHY,
-    SURPRISED,
-    SAD,
-    ANGRY
+    SURPRISE,
+    SAD
 }
