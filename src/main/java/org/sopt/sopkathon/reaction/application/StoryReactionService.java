@@ -9,6 +9,7 @@ import org.sopt.sopkathon.reaction.domain.ReactionType;
 import org.sopt.sopkathon.reaction.domain.StoryReaction;
 import org.sopt.sopkathon.reaction.dto.StoryReactionRequest;
 import org.sopt.sopkathon.reaction.dto.StoryReactionResponse;
+import org.sopt.sopkathon.reaction.repository.ReactionTypeCountProjection;
 import org.sopt.sopkathon.reaction.repository.StoryReactionRepository;
 import org.sopt.sopkathon.story.domain.Story;
 import org.sopt.sopkathon.story.error.StoryErrorCode;
@@ -55,8 +56,7 @@ public class StoryReactionService {
 
     public Map<String, Long> getReactionCounts(Long storyId) {
         Map<ReactionType, Long> counted = new EnumMap<>(ReactionType.class);
-        for (StoryReactionRepository.ReactionTypeCount row
-                : storyReactionRepository.countByStoryIdGroupByReactionType(storyId)) {
+        for (ReactionTypeCountProjection row : storyReactionRepository.countByStoryIdGroupedByReactionType(storyId)) {
             counted.put(row.getReactionType(), row.getCount());
         }
 

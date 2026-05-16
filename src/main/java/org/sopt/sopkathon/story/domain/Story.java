@@ -15,6 +15,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import org.sopt.sopkathon.spot.domain.Spot;
 import org.sopt.sopkathon.user.domain.User;
 
 @Entity
@@ -31,8 +32,9 @@ public class Story {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "spot_id", nullable = false)
-    private Long spotId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "spot_id", nullable = false)
+    private Spot spot;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
@@ -55,16 +57,16 @@ public class Story {
     protected Story() {
     }
 
-    private Story(Long spotId, User user, String title, String content, StoryType storyType) {
-        this.spotId = spotId;
+    private Story(Spot spot, User user, String title, String content, StoryType storyType) {
+        this.spot = spot;
         this.user = user;
         this.title = title;
         this.content = content;
         this.storyType = storyType;
     }
 
-    public static Story create(Long spotId, User user, String title, String content, StoryType storyType) {
-        return new Story(spotId, user, title, content, storyType);
+    public static Story create(Spot spot, User user, String title, String content, StoryType storyType) {
+        return new Story(spot, user, title, content, storyType);
     }
 
     @PrePersist
@@ -76,8 +78,8 @@ public class Story {
         return id;
     }
 
-    public Long spotId() {
-        return spotId;
+    public Spot spot() {
+        return spot;
     }
 
     public User user() {
