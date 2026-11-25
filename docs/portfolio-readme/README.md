@@ -37,19 +37,19 @@ Swagger에서 같은 글에 좋아요를 보내면 좋아요가 4개에서 5개�
 
 ## 아키텍처
 
-![시스템 구성: iOS에서 Spring API에 요청하고 MySQL에 스토리와 반응을 저장](assets/system.svg)
+![시스템 구성: iOS에서 Spring API에 요청하고 MySQL에 스토리와 반응을 저장](assets/system.png)
 
 [시스템 원본](assets/system.drawio)
 
 UIKit 클라이언트가 목록·상세를 HTTP로 읽습니다. 서버는 스토리 조회·작성과 감정 반응을 서로 다른 모듈로 분리하고, 데이터는 MySQL에 저장합니다.
 
-![실행 환경: 로컬 Gradle 또는 Compose 앱과 MySQL, 원격 배포 워크플로](assets/infra.svg)
+![실행 환경: 로컬 Gradle 또는 Compose 앱과 MySQL, 원격 배포 워크플로](assets/infra.png)
 
 [실행·배포 구성 원본](assets/infra.drawio)
 
 로컬에서는 앱과 DB를 분리해 실행합니다. 배포 구성에는 GitHub Actions의 이미지 빌드, Docker Hub, EC2의 Compose와 RDS 연결 경로가 들어 있습니다.
 
-![반응 흐름: 기존 반응 누락은 추가, 같은 반응은 삭제, 다른 반응은 변경](assets/reaction.svg)
+![반응 흐름: 기존 반응 누락은 추가, 같은 반응은 삭제, 다른 반응은 변경](assets/reaction.png)
 
 [반응 처리 원본](assets/reaction.drawio)
 

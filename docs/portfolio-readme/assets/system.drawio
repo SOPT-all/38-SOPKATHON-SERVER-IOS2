@@ -1,2 +1,143 @@
 <?xml version='1.0' encoding='utf-8'?>
-<mxfile host="app.diagrams.net"><diagram id="system" name="핑고 | 시스템 구조"><mxGraphModel page="1" pageWidth="760" pageHeight="355" grid="0"><root><mxCell id="0" /><mxCell id="1" parent="0" /><mxCell id="bg" parent="1" value="" style="rounded=1;arcSize=9;fillColor=#FAFCFF;strokeColor=#CCD9E8;locked=1;" vertex="1"><mxGeometry as="geometry" x="0" y="0" width="760" height="355" /></mxCell><mxCell id="title" parent="1" value="핑고 | 시스템 구조" style="text;html=0;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=26;fontStyle=1;fontColor=#15283F;strokeColor=none;fillColor=none;" vertex="1"><mxGeometry as="geometry" x="20" y="12" width="720" height="34" /></mxCell><mxCell id="sub" parent="1" value="읽기 화면과 서버 쓰기의 연결 범위를 분리해 표시했습니다." style="text;html=0;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=15;fontStyle=0;fontColor=#4D617B;strokeColor=none;fillColor=none;" vertex="1"><mxGeometry as="geometry" x="21" y="45" width="718" height="30" /></mxCell><mxCell id="server" parent="1" value="Spring Boot · Java 21" style="rounded=1;arcSize=12;dashed=1;fillColor=#EAF3FF;strokeColor=#CCD9E8;fontColor=#4D617B;align=left;verticalAlign=top;spacingLeft=14;spacingTop=7;fontSize=15;fontStyle=1;" vertex="1"><mxGeometry as="geometry" x="300" y="103" width="265" height="231" /></mxCell><mxCell id="edge0" parent="1" source="ios" target="story" value="" edge="1" style="edgeStyle=segmentEdgeStyle;endArrow=block;endFill=1;rounded=1;strokeWidth=1.7;strokeColor=#627E9C;dashed=0;exitX=1.0000;exitY=0.5000;entryX=0.0000;entryY=0.5333;exitPerimeter=0;entryPerimeter=0;"><mxGeometry as="geometry" relative="1" /></mxCell><mxCell id="l0" parent="1" value="GET" style="text;html=0;align=center;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=12;fontStyle=1;fontColor=#627E9C;strokeColor=none;fillColor=none;labelBackgroundColor=#FAFCFF;" vertex="1"><mxGeometry as="geometry" x="225" y="153" width="90" height="18" /></mxCell><mxCell id="edge1" parent="1" source="swagger" target="story" value="" edge="1" style="edgeStyle=segmentEdgeStyle;endArrow=block;endFill=1;rounded=1;strokeWidth=1.7;strokeColor=#627E9C;dashed=1;exitX=1.0000;exitY=0.2647;entryX=0.0000;entryY=0.9167;exitPerimeter=0;entryPerimeter=0;"><mxGeometry as="geometry" relative="1"><Array as="points"><mxPoint x="269" y="266" /><mxPoint x="269" y="199" /></Array></mxGeometry></mxCell><mxCell id="l1" parent="1" value="POST 작성" style="text;html=0;align=center;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=12;fontStyle=1;fontColor=#627E9C;strokeColor=none;fillColor=none;labelBackgroundColor=#FAFCFF;" vertex="1"><mxGeometry as="geometry" x="228" y="210" width="90" height="18" /></mxCell><mxCell id="edge2" parent="1" source="swagger" target="reaction" value="" edge="1" style="edgeStyle=segmentEdgeStyle;endArrow=block;endFill=1;rounded=1;strokeWidth=1.7;strokeColor=#627E9C;dashed=1;exitX=1.0000;exitY=0.6765;entryX=0.0000;entryY=0.7667;exitPerimeter=0;entryPerimeter=0;"><mxGeometry as="geometry" relative="1" /></mxCell><mxCell id="l2" parent="1" value="POST 반응" style="text;html=0;align=center;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=12;fontStyle=1;fontColor=#627E9C;strokeColor=none;fillColor=none;labelBackgroundColor=#FAFCFF;" vertex="1"><mxGeometry as="geometry" x="224" y="274" width="90" height="18" /></mxCell><mxCell id="edge3" parent="1" source="story" target="db" value="" edge="1" style="edgeStyle=segmentEdgeStyle;endArrow=block;endFill=1;rounded=1;strokeWidth=1.7;strokeColor=#627E9C;dashed=0;exitX=1.0000;exitY=0.4833;entryX=0.0000;entryY=0.2059;exitPerimeter=0;entryPerimeter=0;"><mxGeometry as="geometry" relative="1"><Array as="points"><mxPoint x="578" y="173" /><mxPoint x="578" y="207" /></Array></mxGeometry></mxCell><mxCell id="edge4" parent="1" source="reaction" target="db" value="" edge="1" style="edgeStyle=segmentEdgeStyle;endArrow=block;endFill=1;rounded=1;strokeWidth=1.7;strokeColor=#627E9C;dashed=0;exitX=1.0000;exitY=0.5000;entryX=0.0000;entryY=0.7353;exitPerimeter=0;entryPerimeter=0;"><mxGeometry as="geometry" relative="1"><Array as="points"><mxPoint x="578" y="278" /><mxPoint x="578" y="243" /></Array></mxGeometry></mxCell><mxCell id="ios" parent="1" value="" style="rounded=1;arcSize=12;fillColor=#FFFFFF;strokeColor=#2564BF;strokeWidth=1.2;" vertex="1"><mxGeometry as="geometry" x="22" y="142" width="194" height="68" /></mxCell><mxCell id="iosicon" parent="ios" value="" style="shape=image;imageAspect=0;aspect=fixed;image=data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%232564BF%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%226%22%20y%3D%222%22%20width%3D%2212%22%20height%3D%2220%22%20rx%3D%223%22%2F%3E%3Cpath%20d%3D%22M10%2018h4M11%205h2%22%2F%3E%3C%2Fsvg%3E;" vertex="1"><mxGeometry as="geometry" x="13" y="22" width="24" height="24" /></mxCell><mxCell id="iost" parent="ios" value="iOS 앱" style="text;html=0;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=17;fontStyle=1;fontColor=#15283F;strokeColor=none;fillColor=none;" vertex="1"><mxGeometry as="geometry" x="43" y="12" width="141" height="26" /></mxCell><mxCell id="iosd" parent="ios" value="지도 · 미리보기 · 전문" style="text;html=0;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=12;fontStyle=0;fontColor=#4D617B;strokeColor=none;fillColor=none;" vertex="1"><mxGeometry as="geometry" x="43" y="35" width="141" height="20" /></mxCell><mxCell id="swagger" parent="1" value="" style="rounded=1;arcSize=12;fillColor=#FFFFFF;strokeColor=#174A91;strokeWidth=1.2;" vertex="1"><mxGeometry as="geometry" x="22" y="248" width="194" height="68" /></mxCell><mxCell id="swaggericon" parent="swagger" value="" style="shape=image;imageAspect=0;aspect=fixed;image=data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23174A91%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%222%22%20y%3D%223%22%20width%3D%2220%22%20height%3D%2218%22%20rx%3D%223%22%2F%3E%3Cpath%20d%3D%22m6%209%203%203-3%203m7%200h4%22%2F%3E%3C%2Fsvg%3E;" vertex="1"><mxGeometry as="geometry" x="13" y="22" width="24" height="24" /></mxCell><mxCell id="swaggert" parent="swagger" value="Swagger UI" style="text;html=0;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=17;fontStyle=1;fontColor=#15283F;strokeColor=none;fillColor=none;" vertex="1"><mxGeometry as="geometry" x="43" y="12" width="141" height="26" /></mxCell><mxCell id="swaggerd" parent="swagger" value="작성·반응 API 호출" style="text;html=0;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=12;fontStyle=0;fontColor=#4D617B;strokeColor=none;fillColor=none;" vertex="1"><mxGeometry as="geometry" x="43" y="35" width="141" height="20" /></mxCell><mxCell id="story" parent="1" value="" style="rounded=1;arcSize=12;fillColor=#FFFFFF;strokeColor=#2564BF;strokeWidth=1.2;" vertex="1"><mxGeometry as="geometry" x="329" y="144" width="210" height="60" /></mxCell><mxCell id="storyicon" parent="story" value="" style="shape=image;imageAspect=0;aspect=fixed;image=data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%232564BF%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22m8%206-5%206%205%206m8-12%205%206-5%206m-2-14-4%2016%22%2F%3E%3C%2Fsvg%3E;" vertex="1"><mxGeometry as="geometry" x="13" y="18" width="24" height="24" /></mxCell><mxCell id="storyt" parent="story" value="스토리 API" style="text;html=0;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=17;fontStyle=1;fontColor=#15283F;strokeColor=none;fillColor=none;" vertex="1"><mxGeometry as="geometry" x="43" y="8" width="157" height="26" /></mxCell><mxCell id="storyd" parent="story" value="목록 · 상세 · 작성" style="text;html=0;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=12;fontStyle=0;fontColor=#4D617B;strokeColor=none;fillColor=none;" vertex="1"><mxGeometry as="geometry" x="43" y="31" width="157" height="20" /></mxCell><mxCell id="reaction" parent="1" value="" style="rounded=1;arcSize=12;fillColor=#FFFFFF;strokeColor=#2564BF;strokeWidth=1.2;" vertex="1"><mxGeometry as="geometry" x="329" y="248" width="210" height="60" /></mxCell><mxCell id="reactionicon" parent="reaction" value="" style="shape=image;imageAspect=0;aspect=fixed;image=data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%232564BF%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M4%208h16m-5-5%205%205-5%205M20%2016H4m5-5-5%205%205%205%22%2F%3E%3C%2Fsvg%3E;" vertex="1"><mxGeometry as="geometry" x="13" y="18" width="24" height="24" /></mxCell><mxCell id="reactiont" parent="reaction" value="반응 API" style="text;html=0;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=17;fontStyle=1;fontColor=#15283F;strokeColor=none;fillColor=none;" vertex="1"><mxGeometry as="geometry" x="43" y="8" width="157" height="26" /></mxCell><mxCell id="reactiond" parent="reaction" value="감정 상태와 개수 반환" style="text;html=0;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=12;fontStyle=0;fontColor=#4D617B;strokeColor=none;fillColor=none;" vertex="1"><mxGeometry as="geometry" x="43" y="31" width="157" height="20" /></mxCell><mxCell id="db" parent="1" value="" style="rounded=1;arcSize=12;fillColor=#FFFFFF;strokeColor=#147666;strokeWidth=1.2;" vertex="1"><mxGeometry as="geometry" x="594" y="193" width="145" height="68" /></mxCell><mxCell id="dbicon" parent="db" value="" style="shape=image;imageAspect=0;aspect=fixed;image=data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23147666%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cellipse%20cx%3D%2212%22%20cy%3D%225.5%22%20rx%3D%228%22%20ry%3D%223.5%22%2F%3E%3Cpath%20d%3D%22M4%206v12c0%202%204%203%208%203s8-1%208-3V6M4%2012c0%202%204%203%208%203s8-1%208-3%22%2F%3E%3C%2Fsvg%3E;" vertex="1"><mxGeometry as="geometry" x="13" y="22" width="24" height="24" /></mxCell><mxCell id="dbt" parent="db" value="MySQL" style="text;html=0;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=17;fontStyle=1;fontColor=#15283F;strokeColor=none;fillColor=none;" vertex="1"><mxGeometry as="geometry" x="43" y="12" width="92" height="26" /></mxCell><mxCell id="dbd" parent="db" value="장소 · 글 · 반응" style="text;html=0;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=12;fontStyle=0;fontColor=#4D617B;strokeColor=none;fillColor=none;" vertex="1"><mxGeometry as="geometry" x="43" y="35" width="92" height="20" /></mxCell></root></mxGraphModel></diagram></mxfile>
+<mxfile host="app.diagrams.net" version="32.7.4">
+  <diagram id="시스템" name="시스템">
+    <mxGraphModel page="1" pageWidth="640" pageHeight="467" grid="1" gridSize="10" connect="1" arrows="1" fold="1" background="#FFFFFF">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="bounds" value="" style="shape=rectangle;fillColor=#FFFFFF;strokeColor=none;connectable=0;" vertex="1" parent="1">
+          <mxGeometry x="0" y="0" width="640" height="467" as="geometry" />
+        </mxCell>
+        <mxCell id="decor1" value="01  /  핑고 시스템 구조" style="text;html=0;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=13;fontColor=#14679D;fontStyle=1;fillColor=none;strokeColor=none;whiteSpace=wrap;overflow=visible;connectable=0;" vertex="1" parent="1">
+          <mxGeometry x="24" y="17" width="592" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="decor2" value="지도에서 읽고, 서버에서 반응 처리" style="text;html=0;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=27;fontColor=#172D44;fontStyle=1;fillColor=none;strokeColor=none;whiteSpace=wrap;overflow=visible;connectable=0;" vertex="1" parent="1">
+          <mxGeometry x="24" y="41" width="592" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="ios" value="" style="rounded=1;arcSize=10;fillColor=#FFFFFF;strokeColor=#D4DFE7;strokeWidth=1.1;" vertex="1" parent="1">
+          <mxGeometry x="28" y="92" width="249" height="67" as="geometry" />
+        </mxCell>
+        <mxCell id="decor3" value="" style="ellipse;fillColor=#E9F6EF;strokeColor=none;connectable=0;" vertex="1" parent="1">
+          <mxGeometry x="37" y="108.5" width="34" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="decor4" value="" style="shape=image;imageAspect=1;aspect=fixed;image=data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2048%2048%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23087D68%22%20stroke-width%3D%222.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%2210%22%20y%3D%224%22%20width%3D%2228%22%20height%3D%2240%22%20rx%3D%225%22%2F%3E%3Cpath%20d%3D%22M17%2010h14M22%2038h4%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E;connectable=0;" vertex="1" parent="1">
+          <mxGeometry x="41.08" y="112.58" width="25.84" height="25.84" as="geometry" />
+        </mxCell>
+        <mxCell id="decor5" value="iOS 앱" style="text;html=0;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=17;fontColor=#172D44;fontStyle=1;fillColor=none;strokeColor=none;whiteSpace=wrap;overflow=visible;connectable=0;" vertex="1" parent="1">
+          <mxGeometry x="78" y="99" width="195" height="23" as="geometry" />
+        </mxCell>
+        <mxCell id="decor6" value="지도 · 미리보기 · 전문" style="text;html=0;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=15;fontColor=#50657B;fontStyle=0;fillColor=none;strokeColor=none;whiteSpace=wrap;overflow=visible;connectable=0;" vertex="1" parent="1">
+          <mxGeometry x="78" y="121" width="195" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="swagger" value="" style="rounded=1;arcSize=10;fillColor=#FFFFFF;strokeColor=#D4DFE7;strokeWidth=1.1;" vertex="1" parent="1">
+          <mxGeometry x="364" y="92" width="249" height="67" as="geometry" />
+        </mxCell>
+        <mxCell id="decor7" value="" style="ellipse;fillColor=#EDF6FC;strokeColor=none;connectable=0;" vertex="1" parent="1">
+          <mxGeometry x="373" y="108.5" width="34" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="decor8" value="" style="shape=image;imageAspect=1;aspect=fixed;image=data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2048%2048%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%2314679D%22%20stroke-width%3D%222.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%225%22%20y%3D%229%22%20width%3D%2238%22%20height%3D%2230%22%20rx%3D%224%22%2F%3E%3Cpath%20d%3D%22m11%2017%207%207-7%207m12%200h12%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E;connectable=0;" vertex="1" parent="1">
+          <mxGeometry x="377.08" y="112.58" width="25.84" height="25.84" as="geometry" />
+        </mxCell>
+        <mxCell id="decor9" value="Swagger UI" style="text;html=0;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=17;fontColor=#172D44;fontStyle=1;fillColor=none;strokeColor=none;whiteSpace=wrap;overflow=visible;connectable=0;" vertex="1" parent="1">
+          <mxGeometry x="414" y="99" width="195" height="23" as="geometry" />
+        </mxCell>
+        <mxCell id="decor10" value="작성·반응 API 호출" style="text;html=0;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=15;fontColor=#50657B;fontStyle=0;fillColor=none;strokeColor=none;whiteSpace=wrap;overflow=visible;connectable=0;" vertex="1" parent="1">
+          <mxGeometry x="414" y="121" width="195" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="server" value="" style="rounded=1;arcSize=6;strokeWidth=1.4;strokeColor=#14679D;fillColor=#EDF6FC;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="18" y="219" width="604" height="133" as="geometry" />
+        </mxCell>
+        <mxCell id="decor11" value="" style="text;html=0;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=18;fontColor=#14679D;fontStyle=1;fillColor=none;strokeColor=none;whiteSpace=wrap;overflow=visible;connectable=0;" vertex="1" parent="1">
+          <mxGeometry x="30" y="227" width="580" height="23" as="geometry" />
+        </mxCell>
+        <mxCell id="decor12" value="Spring Boot" style="text;html=0;align=center;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=18;fontColor=#14679D;fontStyle=1;fillColor=none;strokeColor=none;whiteSpace=wrap;overflow=visible;connectable=0;" vertex="1" parent="1">
+          <mxGeometry x="257" y="230" width="236" height="23" as="geometry" />
+        </mxCell>
+        <mxCell id="story" value="" style="rounded=1;arcSize=10;fillColor=#FFFFFF;strokeColor=#D4DFE7;strokeWidth=1.1;" vertex="1" parent="1">
+          <mxGeometry x="37" y="265" width="247" height="69" as="geometry" />
+        </mxCell>
+        <mxCell id="decor13" value="" style="ellipse;fillColor=#E9F6EF;strokeColor=none;connectable=0;" vertex="1" parent="1">
+          <mxGeometry x="46" y="282.5" width="34" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="decor14" value="" style="shape=image;imageAspect=1;aspect=fixed;image=data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2048%2048%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23087D68%22%20stroke-width%3D%222.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M36%2018c0%209-12%2022-12%2022S12%2027%2012%2018a12%2012%200%200%201%2024%200z%22%2F%3E%3Ccircle%20cx%3D%2224%22%20cy%3D%2218%22%20r%3D%224%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E;connectable=0;" vertex="1" parent="1">
+          <mxGeometry x="50.08" y="286.58" width="25.84" height="25.84" as="geometry" />
+        </mxCell>
+        <mxCell id="decor15" value="스토리 API" style="text;html=0;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=17;fontColor=#172D44;fontStyle=1;fillColor=none;strokeColor=none;whiteSpace=wrap;overflow=visible;connectable=0;" vertex="1" parent="1">
+          <mxGeometry x="87" y="272" width="193" height="23" as="geometry" />
+        </mxCell>
+        <mxCell id="decor16" value="목록·상세·작성" style="text;html=0;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=15;fontColor=#50657B;fontStyle=0;fillColor=none;strokeColor=none;whiteSpace=wrap;overflow=visible;connectable=0;" vertex="1" parent="1">
+          <mxGeometry x="87" y="294" width="193" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="reaction" value="" style="rounded=1;arcSize=10;fillColor=#FFFFFF;strokeColor=#D4DFE7;strokeWidth=1.1;" vertex="1" parent="1">
+          <mxGeometry x="355" y="265" width="247" height="69" as="geometry" />
+        </mxCell>
+        <mxCell id="decor17" value="" style="ellipse;fillColor=#EDF6FC;strokeColor=none;connectable=0;" vertex="1" parent="1">
+          <mxGeometry x="364" y="282.5" width="34" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="decor18" value="" style="shape=image;imageAspect=1;aspect=fixed;image=data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2048%2048%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%2314679D%22%20stroke-width%3D%222.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M6%2016h34l-8-8m10%2024H8l8%208%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E;connectable=0;" vertex="1" parent="1">
+          <mxGeometry x="368.08" y="286.58" width="25.84" height="25.84" as="geometry" />
+        </mxCell>
+        <mxCell id="decor19" value="반응 API" style="text;html=0;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=17;fontColor=#172D44;fontStyle=1;fillColor=none;strokeColor=none;whiteSpace=wrap;overflow=visible;connectable=0;" vertex="1" parent="1">
+          <mxGeometry x="405" y="272" width="193" height="23" as="geometry" />
+        </mxCell>
+        <mxCell id="decor20" value="내 반응과 유형별 개수" style="text;html=0;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=15;fontColor=#50657B;fontStyle=0;fillColor=none;strokeColor=none;whiteSpace=wrap;overflow=visible;connectable=0;" vertex="1" parent="1">
+          <mxGeometry x="405" y="294" width="193" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="db" value="" style="rounded=1;arcSize=10;fillColor=#FFFFFF;strokeColor=#D4DFE7;strokeWidth=1.1;" vertex="1" parent="1">
+          <mxGeometry x="190" y="390" width="260" height="62" as="geometry" />
+        </mxCell>
+        <mxCell id="decor21" value="" style="ellipse;fillColor=#E9F6EF;strokeColor=none;connectable=0;" vertex="1" parent="1">
+          <mxGeometry x="199" y="404.0" width="34" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="decor22" value="" style="shape=image;imageAspect=1;aspect=fixed;image=data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2048%2048%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23087D68%22%20stroke-width%3D%222.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cellipse%20cx%3D%2224%22%20cy%3D%2211%22%20rx%3D%2215%22%20ry%3D%226%22%2F%3E%3Cpath%20d%3D%22M9%2011v24c0%208%2030%208%2030%200V11M9%2023c0%208%2030%208%2030%200%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E;connectable=0;" vertex="1" parent="1">
+          <mxGeometry x="203.08" y="408.08" width="25.84" height="25.84" as="geometry" />
+        </mxCell>
+        <mxCell id="decor23" value="MySQL" style="text;html=0;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=17;fontColor=#172D44;fontStyle=1;fillColor=none;strokeColor=none;whiteSpace=wrap;overflow=visible;connectable=0;" vertex="1" parent="1">
+          <mxGeometry x="240" y="397" width="206" height="23" as="geometry" />
+        </mxCell>
+        <mxCell id="decor24" value="장소 · 스토리 · 반응" style="text;html=0;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=15;fontColor=#50657B;fontStyle=0;fillColor=none;strokeColor=none;whiteSpace=wrap;overflow=visible;connectable=0;" vertex="1" parent="1">
+          <mxGeometry x="240" y="419" width="206" height="29" as="geometry" />
+        </mxCell>
+        <mxCell id="decor25" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#087D68;strokeWidth=2;endArrow=block;endFill=1;endSize=8;dashed=0;dashPattern=5 5;exitX=0.5;exitY=1;entryX=0.5;entryY=0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="ios" target="story">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="decor26" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#14679D;strokeWidth=2;endArrow=block;endFill=1;endSize=8;dashed=1;dashPattern=5 5;exitX=0.2;exitY=1;entryX=0.87;entryY=0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="swagger" target="story">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="414" y="202" />
+              <mxPoint x="252" y="202" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="decor27" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#14679D;strokeWidth=2;endArrow=block;endFill=1;endSize=8;dashed=1;dashPattern=5 5;exitX=0.78;exitY=1;entryX=0.82;entryY=0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="swagger" target="reaction">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="decor28" value="GET" style="text;html=0;align=center;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=15;fontColor=#087D68;fontStyle=1;fillColor=#FFFFFF;strokeColor=none;whiteSpace=wrap;overflow=visible;connectable=0;" vertex="1" parent="1">
+          <mxGeometry x="84" y="175" width="69" height="21" as="geometry" />
+        </mxCell>
+        <mxCell id="decor29" value="POST 작성" style="text;html=0;align=center;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=15;fontColor=#14679D;fontStyle=1;fillColor=#FFFFFF;strokeColor=none;whiteSpace=wrap;overflow=visible;connectable=0;" vertex="1" parent="1">
+          <mxGeometry x="282" y="175" width="107" height="21" as="geometry" />
+        </mxCell>
+        <mxCell id="decor30" value="POST 반응" style="text;html=0;align=center;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=15;fontColor=#14679D;fontStyle=1;fillColor=#FFFFFF;strokeColor=none;whiteSpace=wrap;overflow=visible;connectable=0;" vertex="1" parent="1">
+          <mxGeometry x="530" y="177" width="102" height="21" as="geometry" />
+        </mxCell>
+        <mxCell id="decor31" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#087D68;strokeWidth=2;endArrow=block;endFill=1;endSize=8;dashed=0;dashPattern=5 5;exitX=0.5;exitY=1;entryX=0.23;entryY=0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="story" target="db">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="160" y="377" />
+              <mxPoint x="250" y="377" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="decor32" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#14679D;strokeWidth=2;endArrow=block;endFill=1;endSize=8;dashed=0;dashPattern=5 5;exitX=0.5;exitY=1;entryX=0.78;entryY=0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="reaction" target="db">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="478" y="377" />
+              <mxPoint x="393" y="377" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
