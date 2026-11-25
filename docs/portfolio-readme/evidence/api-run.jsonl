@@ -1,0 +1,13 @@
+{"step": "health", "http": 200, "result": "UP"}
+{"step": "openapi", "http": 200, "result": ["/api/v1/spots/stories", "/api/v1/stories/{storyId}", "/api/v1/stories/{storyId}/reactions"]}
+{"step": "sort latest", "http": 200, "result": [4, 3, 2, 1]}
+{"step": "sort popular", "http": 200, "result": [3, 4, 2, 1]}
+{"step": "before", "http": 200, "result": [null, {"LIKE": 4, "EMPATHY": 2, "SURPRISE": 3, "SAD": 1}]}
+{"step": "add LIKE", "http": 200, "result": ["LIKE", {"LIKE": 5, "EMPATHY": 2, "SURPRISE": 3, "SAD": 1}]}
+{"step": "switch SAD", "http": 200, "result": ["SAD", {"LIKE": 4, "EMPATHY": 2, "SURPRISE": 3, "SAD": 2}]}
+{"step": "cancel SAD", "http": 200, "result": [null, {"LIKE": 4, "EMPATHY": 2, "SURPRISE": 3, "SAD": 1}]}
+{"step": "reload", "http": 200, "result": [null, {"LIKE": 4, "EMPATHY": 2, "SURPRISE": 3, "SAD": 1}]}
+{"step": "create", "http": 201, "result": 13}
+{"step": "reopen", "http": 200, "result": {"storyId": 13, "title": "빗소리", "content": "비를 피하던 처마에서 이름 모를 고양이가 잠들었다.", "storyType": "MEMORY"}}
+{"step": "latest after create", "http": 200, "result": 13}
+{"step": "invalid title", "http": 400, "result": "COMMON_VALIDATION_FAILED"}
