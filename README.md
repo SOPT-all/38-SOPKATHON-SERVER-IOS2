@@ -1,5 +1,7 @@
 # SOPKATHON 
 
+[핑고 프로젝트 소개와 시연](docs/portfolio-readme/README.md)
+
 ## 문서 먼저 보기
 
 개발/협업/배포 문서의 첫 페이지는 [문서 포털](docs/README.md)이다.
